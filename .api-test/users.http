@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:8080
+@json = application/json
+
+### 회원가입
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "1234",
+  "nickname": "admin",
+  "email": "admin@admin.com"
+}
+
+### 로그인(세션 생성)
+POST {{baseUrl}}/api/login
+Content-Type: {{json}}
+
+{
+  "username": "admin",
+  "password": "1234"
+}
+
+### 로그아웃(세션 삭제)
+POST {{baseUrl}}/api/logout
+
+### 내 정보 조회(/api/me)
+GET {{baseUrl}}/api/me
+
+### 사용자 목록(limit)
+GET {{baseUrl}}/api/users?limit=10
+
+### 사용자 단건 조회
+GET {{baseUrl}}/api/users/
+
+### 닉네임 변경
+PUT {{baseUrl}}/api/users/00/nickname
+Content-Type: {{json}}
+
+{
+  "nickname": "nickname"
+}
+
+### 비밀번호 변경
+PUT {{baseUrl}}/api/users/1234/password
+Content-Type: {{json}}
+
+{
+  "password": "1234"
+}
+
+### 사용자삭제
+DELETE {{baseUrl}}/api/users/1

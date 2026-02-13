@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>zeroziba post</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/zeroziba/assets/styles.css"></head><body><div class="wrap"><header class="topbar"><nav class="nav row"><a href="/zeroziba/index.html">홈</a><a href="/zeroziba/auth.html">인증</a><a class="active" href="/zeroziba/board.html">게시판</a></nav><a class="btn" href="/zeroziba/board.html">목록으로</a></header>
+<section class="panel"><div id="topError" class="alert err" style="display:none"><div><b>에러:</b> <span id="topErrorMsg"></span> <span id="topErrorAt" class="muted"></span></div><button class="btn" id="btnClearErr">닫기</button></div><div id="topInfo" class="alert info" style="display:none"><div><b>안내:</b> <span id="topInfoMsg"></span> <span id="topInfoAt" class="muted"></span></div><button class="btn" id="btnClearInfo">확인</button></div><div class="title" style="margin-top:10px">상단 로그</div><pre id="topLog" class="log"></pre></section>
+<section class="panel"><div class="row between"><div class="title" style="margin:0">게시글 본문</div><button id="btnDeletePost" class="btn">글 삭제</button></div><h2 id="ptitle" style="margin:6px 0"></h2><div id="pmeta" class="muted"></div><div id="pcontent" style="margin-top:10px;white-space:pre-wrap"></div></section>
+<section class="panel"><div class="title">댓글</div><div id="comments" class="list"></div><form id="fComment" class="form-row" style="margin-top:10px"><input class="input" name="content" placeholder="댓글 내용" required><button class="btn btn-main">댓글 등록</button></form></section>
+</div><script src="/zeroziba/assets/api.js"></script><script src="/zeroziba/assets/common.js"></script><script>
+const {$,bindTopAlerts,toast}=ZCommon;bindTopAlerts();
+const q=new URLSearchParams(location.search);const id=Number(q.get('id'));
+
+function commentsSkeleton(){
+  const box=$('#comments'); box.innerHTML='';
+  for(let i=0;i<4;i++){const sk=document.createElement('div');sk.className='skeleton';box.appendChild(sk);} 
+}
+
+async function load(){
+  if(!id){KApi.push('에러',{message:'post id가 없음'});return;}
+  commentsSkeleton();
+  try{
+    const p=await KApi.post(id);
+    $('#ptitle').textContent=p.title;
+    $('#pmeta').textContent=`글번호 ${p.id} · 작성자 ${p.userId}`;
+    $('#pcontent').textContent=p.content;
+
+    const comments=await KApi.comments(id);
+    const box=$('#comments'); box.innerHTML='';
+    if(!comments.length){box.innerHTML='<div class="muted">댓글 없음</div>';return;}
+
+    comments.forEach(c=>{
+      const el=document.createElement('div');
+      el.className='panel fade-up';
+      el.style.marginTop='0';
+      el.innerHTML=`<div class="muted">#${c.id} · user ${c.userId}</div><div style="margin-top:6px">${c.content}</div>`;
+      box.appendChild(el);
+    });
+  }catch(_){ }
+}
+
+load();
+$('#btnDeletePost').addEventListener('click',async()=>{
+  if(!confirm('이 글을 삭제할까요? (작성자/관리자만 가능)')) return;
+  try{await KApi.deletePost(id);toast('게시글 삭제 완료');location.href='/zeroziba/board.html';}catch(_){ }
+});
+$('#fComment').addEventListener('submit',async e=>{
+  e.preventDefault();const f=new FormData(e.target);
+  try{await KApi.createComment(id,f.get('content'));e.target.reset();toast('댓글 등록 완료');load();}catch(_){ }
+});
+</script></body></html>

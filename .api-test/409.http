@@ -1,0 +1,23 @@
+@baseUrl = http://localhost:8080
+
+### Step1 - username 중복 (409)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "username": "test1",
+  "password": "1234",
+  "nickname": "테스트",
+  "email": "t1_new@test.com"
+}
+
+### Step2 - email 중복 (409)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "username": "user0",
+  "password": "1234",
+  "nickname": "테스트",
+  "email": "test1@test.com"
+}
