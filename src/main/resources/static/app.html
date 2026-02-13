@@ -1,1 +1,62 @@
-<!doctype html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; url=/zeroziba/board.html"><title>Redirect</title></head><body>go to <a href="/zeroziba/board.html">/zeroziba/board.html</a></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PARK COMMUNITY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <header class="top-header">
+    <div class="wrap top-row">
+      <a class="logo" href="/app.html">PARK COMMUNITY</a>
+      <div class="search-box">
+        <input id="q" placeholder="제목 검색" />
+        <button id="btnSearch">검색</button>
+      </div>
+      <div id="authArea" class="auth-area"></div>
+    </div>
+    <nav class="nav wrap">
+      <a href="#">전체글</a>
+      <a href="#">공지</a>
+      <a href="#">인기글</a>
+      <a href="#">자유게시판</a>
+    </nav>
+  </header>
+
+  <main class="wrap main-grid">
+    <section class="left-col">
+      <div class="board-head">
+        <h1>자유 게시판</h1>
+        <button id="btnRefresh">새로고침</button>
+      </div>
+
+      <div id="writePanel" class="panel hidden">
+        <h3>글쓰기</h3>
+        <input id="postTitle" placeholder="제목" />
+        <textarea id="postContent" placeholder="내용"></textarea>
+        <button id="btnCreatePost" class="primary">등록</button>
+      </div>
+
+      <table class="post-table">
+        <thead>
+          <tr>
+            <th>번호</th><th>제목</th><th>글쓴이</th><th>작성일</th><th>댓글</th>
+          </tr>
+        </thead>
+        <tbody id="postTbody"></tbody>
+      </table>
+    </section>
+
+    <aside class="right-col">
+      <section id="authPanel" class="panel"></section>
+      <section id="postDetail" class="panel hidden"></section>
+    </aside>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

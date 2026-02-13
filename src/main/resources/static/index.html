@@ -1,1 +1,299 @@
-<!doctype html><html><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; url=/zeroziba/index.html"><title>Redirect</title></head><body>go to <a href="/zeroziba/index.html">/zeroziba/index.html</a></body></html>
+<!doctype html>
+<html lang='ko'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <title>커뮤니티 홈</title>
+  <link rel='stylesheet' href='/styles.css'>
+</head>
+<body>
+<header class='top'>
+  <div class='wrap row'>
+    <a class='logo' href='/index.html'>PARK COMMUNITY</a>
+    <nav class='nav'><a href='/mypage.html'>마이페이지</a></nav>
+    <div class='spacer'></div>
+    <span id='authTop' class='muted'></span>
+    <button id='authBtn' class='btn'>로그인</button>
+  </div>
+</header>
+
+<main class='wrap'>
+  <div class='home-grid'>
+    <section class='panel'>
+      <div class='board-title-row'>
+        <h3>최신 게시글</h3>
+        <div style='display:flex;gap:8px'>
+          <button id='btnRefreshPosts' class='btn'>새로고침</button>
+          <button id='btnOpenWrite' class='btn primary' style='display:none'>글쓰기</button>
+        </div>
+      </div>
+      <table class='table'>
+        <thead><tr><th>제목</th></tr></thead>
+        <tbody id='homePosts'></tbody>
+      </table>
+    </section>
+
+    <aside class='panel side-panel'>
+      <div id='loginBox'>
+        <h3>로그인</h3>
+        <input id='liId' placeholder='아이디'>
+        <input id='liPw' type='password' placeholder='비밀번호'>
+        <button id='btnLogin' class='btn primary' style='margin-top:10px'>로그인</button>
+        <p class='muted signup-link'>회원이 아니신가요? <a href='/signup.html'>회원가입</a></p>
+      </div>
+
+      <div id='meBox' style='display:none'>
+        <div class='profile-head'>
+          <div id='meAvatar' class='avatar'>?</div>
+          <div>
+            <div id='meName' class='profile-name'>-</div>
+            <div id='meRole' class='role-badge'>회원</div>
+          </div>
+        </div>
+
+        <div class='profile-stats'>
+          <div><span>내 글</span><b id='myPostCount'>0</b></div>
+          <div><span>오늘 작성</span><b id='todayPostCount'>0</b></div>
+        </div>
+
+        <div class='profile-actions'>
+          <a class='btn' href='/mypage.html'>마이페이지</a>
+          <button id='btnSideLogout' class='btn'>로그아웃</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class='home-extras'>
+    <div class='stats-grid'>
+      <article class='panel stat-card'><div class='stat-label'>전체 게시글</div><div id='sPosts' class='stat-value'>0</div></article>
+      <article class='panel stat-card'><div class='stat-label'>전체 댓글</div><div id='sComments' class='stat-value'>0</div></article>
+      <article class='panel stat-card'><div class='stat-label'>오늘 작성</div><div id='sToday' class='stat-value'>0</div></article>
+      <article class='panel stat-card'><div class='stat-label'>내 글</div><div id='sMine' class='stat-value'>0</div></article>
+    </div>
+
+    <div class='bottom-grid'>
+      <article class='panel'><h3 style='margin:0'>실시간 활동</h3><div id='activityList' class='activity-list'></div></article>
+      <article class='panel'><h3 style='margin:0'>인기 키워드</h3><div id='chipWrap' class='chips'></div><div class='footer-note' style='margin-top:12px'>게시판을 꾸준히 갱신해 두면 커뮤니티 체감 품질이 확 올라가요. 새로고침 버튼으로 최신 반영 상태를 유지해보세요.</div></article>
+    </div>
+  </section>
+</main>
+
+<div id='writeModal' class='modal hidden'>
+  <div class='modal-card'>
+    <h3>글쓰기</h3>
+    <label id='noticeWrap' style='display:none;align-items:center;gap:8px;margin-top:6px'>
+      <input id='isNotice' type='checkbox' style='width:auto;margin:0'> 공지로 등록 (관리자)
+    </label>
+    <input id='pt' placeholder='제목'>
+    <textarea id='pc' placeholder='내용'></textarea>
+    <div style='display:flex;gap:8px;margin-top:10px'>
+      <button id='btnPost' class='btn primary'>등록</button>
+      <button id='btnCloseWrite' class='btn'>취소</button>
+    </div>
+  </div>
+</div>
+
+<div id='detailModal' class='modal hidden'>
+  <div class='modal-card detail-card'>
+    <h3 id='dTitle'></h3>
+    <p id='dMeta' class='muted'></p>
+    <div id='dContent' class='post-content' style='font-size:18px;margin-top:12px'></div>
+    <hr style='border:none;border-top:1px solid #e5e7eb;margin:16px 0'>
+    <h4 style='margin:0'>댓글</h4>
+    <div id='dComments' class='comment-list'></div>
+    <div id='dCommentWrite' style='display:none;margin-top:10px'>
+      <input id='dCi' placeholder='댓글 입력'>
+      <button id='btnDComment' class='btn primary' style='margin-top:10px'>등록</button>
+    </div>
+    <div style='display:flex;gap:8px;justify-content:flex-end;margin-top:14px'>
+      <button id='btnDDelete' class='btn' style='display:none'>글 삭제</button>
+      <button id='btnDClose' class='btn'>닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src='/api.js'></script>
+<script>
+let me = null, isAdmin = false, posts = [], selected = null;
+const stop = new Set(['입니다','안녕하세요','그리고','제목','공지','반갑습니다']);
+
+const commentCount = (p) => p.commentsCnt ?? p.commentCount ?? p.commentsCount ?? 0;
+const fmt = (n) => Number(n || 0).toLocaleString('ko-KR');
+const isNoticePost = (p) => String(p.title || '').startsWith('[공지]');
+const displayTitle = (t) => isNoticePost({ title: t }) ? String(t).replace(/^\[공지\]\s*/, '') : t;
+
+function renderStats() {
+  const totalPosts = posts.length;
+  const totalComments = posts.reduce((a, p) => a + commentCount(p), 0);
+  const today = new Date().toISOString().slice(0, 10);
+  const todayPosts = posts.filter(p => String(p.createdAt || '').slice(0, 10) === today).length;
+  const mine = me ? posts.filter(p => p.userId === me.id).length : 0;
+  sPosts.textContent = fmt(totalPosts);
+  sComments.textContent = fmt(totalComments);
+  sToday.textContent = fmt(todayPosts);
+  sMine.textContent = fmt(mine);
+  if (me) {
+    myPostCount.textContent = fmt(mine);
+    todayPostCount.textContent = fmt(todayPosts);
+  }
+}
+
+function renderActivity() {
+  const list = posts.slice(0, 6).map(p =>
+    `<div class='activity-item'><span>${isNoticePost(p) ? '📌 ' : ''}${displayTitle(p.title)}</span><span class='muted'>댓글 ${commentCount(p)}</span></div>`
+  ).join('');
+  activityList.innerHTML = list || "<div class='muted'>아직 활동이 없습니다.</div>";
+}
+
+function renderChips() {
+  const words = (posts.map(p => displayTitle(p.title || '')).join(' ').match(/[가-힣A-Za-z0-9]{2,}/g) || [])
+    .map(w => w.toLowerCase()).filter(w => !stop.has(w));
+  const map = {};
+  for (const w of words) map[w] = (map[w] || 0) + 1;
+  const top = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  chipWrap.innerHTML = top.length
+    ? top.map(([w,c]) => `<span class='chip'>#${w} · ${c}</span>`).join('')
+    : "<span class='muted'>키워드 데이터가 부족합니다.</span>";
+}
+
+async function loadPosts() {
+  try {
+    posts = await KApi.posts();
+    posts.sort((a,b)=>{
+      const an = isNoticePost(a) ? 1 : 0;
+      const bn = isNoticePost(b) ? 1 : 0;
+      if (an !== bn) return bn - an;
+      return (b.id || 0) - (a.id || 0);
+    });
+
+    homePosts.innerHTML = '';
+    posts.slice(0, 30).forEach(p => {
+      const tr = document.createElement('tr');
+      tr.className = 'rowlink';
+      const cc = commentCount(p);
+      const badge = isNoticePost(p) ? "<span class='chip' style='padding:3px 8px;margin-right:6px'>공지</span>" : '';
+      tr.innerHTML = `<td class='title-cell'>${badge}${displayTitle(p.title)}${cc>0?` <span class='muted'>[${cc}]</span>`:''}</td>`;
+      tr.onclick = () => location.href = `/post.html?id=${p.id}`;
+      homePosts.appendChild(tr);
+    });
+
+    renderStats();
+    renderActivity();
+    renderChips();
+  } catch {
+    homePosts.innerHTML = `<tr><td class='muted'>게시글을 불러오지 못했습니다.</td></tr>`;
+  }
+}
+
+async function loadAuth() {
+  try {
+    me = await KApi.me();
+    const perm = await KApi.mePermissions().catch(()=>({admin:false}));
+    isAdmin = !!perm.admin;
+
+    authTop.textContent = `${me.nickname||me.username} 님 로그인 중`;
+    authBtn.textContent = '로그아웃';
+    authBtn.onclick = async () => { try { await KApi.logout(); location.reload(); } catch(e){ alert(e.message); } };
+    btnSideLogout.onclick = async () => { try { await KApi.logout(); location.reload(); } catch(e){ alert(e.message); } };
+
+    btnOpenWrite.style.display = 'inline-flex';
+    noticeWrap.style.display = isAdmin ? 'flex' : 'none';
+    loginBox.style.display = 'none';
+    meBox.style.display = 'block';
+
+    const name = me.nickname || me.username;
+    meName.textContent = name;
+    meAvatar.textContent = String(name).charAt(0).toUpperCase();
+    meRole.textContent = isAdmin ? '관리자' : '일반회원';
+    meRole.classList.toggle('admin', isAdmin);
+  } catch {
+    me = null;
+    isAdmin = false;
+    authTop.textContent = '비로그인';
+    authBtn.textContent = '로그인';
+    authBtn.onclick = () => location.href = '/auth.html';
+    btnOpenWrite.style.display = 'none';
+    noticeWrap.style.display = 'none';
+    loginBox.style.display = 'block';
+    meBox.style.display = 'none';
+  }
+}
+
+btnLogin.onclick = async () => {
+  try { await KApi.login({ username: liId.value, password: liPw.value }); location.reload(); }
+  catch (e) { alert(e.message); }
+};
+
+btnRefreshPosts.onclick = loadPosts;
+btnOpenWrite.onclick = () => writeModal.classList.remove('hidden');
+btnCloseWrite.onclick = () => writeModal.classList.add('hidden');
+
+btnPost.onclick = async () => {
+  try {
+    let title = pt.value.trim();
+    if (isAdmin && isNotice.checked && !/^\[공지\]/.test(title)) title = '[공지] ' + title;
+    await KApi.createPost({ title, content: pc.value });
+    pt.value = ''; pc.value = ''; isNotice.checked = false;
+    writeModal.classList.add('hidden');
+    await loadPosts();
+  } catch(e) { alert(e.message); }
+};
+
+writeModal.addEventListener('click', e => { if (e.target === writeModal) writeModal.classList.add('hidden'); });
+btnDClose.onclick = () => detailModal.classList.add('hidden');
+detailModal.addEventListener('click', e => { if (e.target === detailModal) detailModal.classList.add('hidden'); });
+
+async function openDetail(id) {
+  selected = await KApi.post(id);
+  let writer = `${selected.userId}`;
+  try {
+    const u = await KApi.getUser(selected.userId);
+    writer = u.nickname || u.username || writer;
+  } catch {}
+
+  dTitle.textContent = (isNoticePost(selected) ? '📌 ' : '') + displayTitle(selected.title);
+  dMeta.textContent = `작성자 ${writer}`;
+  dContent.innerHTML = (selected.content || '').replace(/\n/g, '<br>');
+
+  const cs = await KApi.comments(id);
+  dComments.innerHTML = cs.length
+    ? cs.map(c => `<div class='comment'>${c.content}</div>`).join('')
+    : `<p class='muted'>댓글이 없습니다.</p>`;
+
+  if (me) {
+    dCommentWrite.style.display = 'block';
+    btnDDelete.style.display = (isAdmin || me.id === selected.userId) ? 'inline-flex' : 'none';
+  } else {
+    dCommentWrite.style.display = 'none';
+    btnDDelete.style.display = 'none';
+  }
+
+  detailModal.classList.remove('hidden');
+}
+
+btnDComment.onclick = async () => {
+  if (!dCi.value.trim() || !selected) return;
+  try {
+    await KApi.createComment(selected.id, dCi.value);
+    dCi.value = '';
+    await openDetail(selected.id);
+    await loadPosts();
+  } catch(e) { alert(e.message); }
+};
+
+btnDDelete.onclick = async () => {
+  if (!selected) return;
+  if (!confirm('삭제할까요?')) return;
+  try {
+    await KApi.deletePost(selected.id);
+    detailModal.classList.add('hidden');
+    await loadPosts();
+  } catch(e) { alert(e.message); }
+};
+
+loadPosts();
+loadAuth();
+</script>
+</body>
+</html>

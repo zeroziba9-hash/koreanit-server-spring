@@ -51,3 +51,7 @@ Content-Type: {{json}}
 
 ### 사용자삭제
 DELETE {{baseUrl}}/api/users/1
+
+
+### naver.com
+GET http://www.naver.com/
