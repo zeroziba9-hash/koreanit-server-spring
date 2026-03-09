@@ -148,3 +148,31 @@ java -Xms128m -Xmx512m -jar build/libs/spring-0.0.1-SNAPSHOT.jar
 - 로그인: `http://localhost:8080/auth.html`
 - 회원가입: `http://localhost:8080/signup.html`
 - 마이페이지: `http://localhost:8080/mypage.html`
+
+---
+
+## 6) Engineering Quality Additions
+
+- **CI 파이프라인 추가**: `.github/workflows/ci.yml`
+  - PR/Push 시 `./gradlew test` 자동 실행
+- **ADR(아키텍처 결정 기록)**: `docs/adr/0001-jdbc-first.md`
+  - JDBC-first 선택 이유와 트레이드오프 문서화
+- **운영 Runbook**: `docs/runbook.md`
+  - 장애 유형별 확인/대응/복구 검증 절차 정리
+- **PR 템플릿**: `.github/pull_request_template.md`
+  - 인증/인가, DB 영향도 체크리스트 표준화
+- **Observability 엔드포인트**
+  - `/actuator/health`
+  - `/actuator/prometheus`
+- **부하 스모크 테스트 스크립트**: `perf/k6-smoke.js`
+- **로컬 인프라 compose**: `docker-compose.infra.yml`
+
+### 성능 스모크 실행 예시
+```bash
+k6 run perf/k6-smoke.js
+```
+
+### 로컬 인프라 실행 예시
+```bash
+docker compose -f docker-compose.infra.yml up -d
+```

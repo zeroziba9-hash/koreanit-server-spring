@@ -23,6 +23,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	// Redis를 HttpSession 저장소로 사용하기 위한 Spring Session 모듈
 	implementation 'org.springframework.session:spring-session-data-redis'
 	// Redis 연결 및 직렬화 처리를 위한 Spring Boot Redis 스타터
